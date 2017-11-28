@@ -317,7 +317,8 @@ FROM
 WHERE
     rwy.LandingFacilityIcaoIdentifier =  'KRIC' ;
 --------------------------------------------------------------------------------
---Longest runway's length at an airport (rwy.LongestRunway is hundreds of feet.  eg 090 = 9000')
+--Longest runway's length at an airport (rwy.LongestRunway is hundreds of feet.  
+-- eg 090 = 9000')
 SELECT 
     rwy.LandingFacilityIcaoIdentifier
     , rwy.LongestRunway
@@ -345,7 +346,7 @@ ON
     iap.FixIdentifier = ndb.NDBIdentifier
 
 WHERE
-    airportidentifier LIKE  '%RIC%' ;
+    iap.LandingFacilityIcaoIdentifier LIKE  '%RIC%' ;
 --------------------------------------------------------------------------------
 -- Needs to be fixed to correctly use joining criteria (see MSA for example)
 --VHF Navaids used for IAPs for an airport
@@ -363,7 +364,7 @@ ON
     iap.FixIdentifier = vor.vorIdentifier
 
 WHERE
-    airportidentifier LIKE  '%RIC%' ;
+    iap.LandingFacilityIcaoIdentifier LIKE  '%RIC%' ;
 --------------------------------------------------------------------------------
 -- Needs to be fixed to correctly use joining criteria (see MSA for example)
 --Fixes used for IAPs for an airport
@@ -381,7 +382,7 @@ ON
     iap.FixIdentifier = fix.waypointIdentifier
 
 WHERE
-    airportidentifier LIKE  '%RIC%'
+    iap.LandingFacilityIcaoIdentifier LIKE  '%RIC%' ;
     ;
 --------------------------------------------------------------------------------
 -- Needs to be fixed to correctly use joining criteria (see MSA for example)
@@ -399,7 +400,7 @@ ON
     iap.FixIdentifier = fix.waypointIdentifier
 
 WHERE
-    airportidentifier LIKE  '%OFP%' ;
+    iap.LandingFacilityIcaoIdentifier LIKE  '%OFP%' ;
 
 
 --------------------------------------------------------------------------------
@@ -419,7 +420,7 @@ ON
     iap.FixIdentifier = fix.waypointIdentifier
 
 WHERE
-    HeliportIdentifier LIKE  '%RIC%' ;
+    iap.LandingFacilityIcaoIdentifier LIKE  '%OFP%' ;
 --------------------------------------------------------------------------------
 SELECT
     --_id
@@ -463,7 +464,7 @@ FROM
     "primary_H_F_base_Heliport - Approach Procedures"
 WHERE
     --airportidentifier LIKE  '%02p%'
-    heliportidentifier LIKE  '%02p%'
+    LandingFacilityIcaoIdentifier LIKE  '%OFP%' ;
 ORDER BY
     SidstarApproachIdentifier
     ,TransitionIdentifier
@@ -475,7 +476,7 @@ SELECT
 FROM
     "primary_H_F_base_Heliport - Approach Procedures"
 WHERE
-    heliportidentifier LIKE  '%02P%'
+    LandingFacilityIcaoIdentifier LIKE  '%02P%'
     ;
 
 ------------------------------------------------------------------------------
@@ -798,55 +799,55 @@ WHERE
 --     CAST(procedure.SequenceNumber AS real)
 ;
 
---------------------------------------------------------------------------------
--- The set of distinct route types and qualifiers
---  and their more verbose descriptions
-SELECT DISTINCT
-    procedure.RouteType
-    ||  CASE
-            WHEN procedure.ApchRouteQualifier1 = '' THEN '_'
-            ELSE procedure.ApchRouteQualifier1
-        END
-    ||  CASE
-            WHEN procedure.ApchRouteQualifier2 = '' THEN '_'
-            ELSE procedure.ApchRouteQualifier2
-        END
-        AS Qualifiers
-    , route_type.Route_Type_Description
-    , route_qualifier.Qualifier_1_Description
-    , route_qualifier2.Qualifier_2_Description
-    , count(*) as CountOfSteps
-FROM
-    "primary_P_F_base_Airport - Approach Procedures" AS procedure
-LEFT OUTER JOIN
-    "route_types" AS route_type
-        on
-        procedure.SectionCode = route_type.Section
-            and
-        procedure.SubSectionCode = route_type.SubSection
-         and
-        procedure.RouteType = route_type.type_code
-    
-LEFT OUTER JOIN
-    "route_qualifiers" AS route_qualifier
-         on
-       procedure.SectionCode = route_qualifier.Section
-        and
-       procedure.SubSectionCode = route_qualifier.SubSection
-        and
-       procedure.ApchRouteQualifier1 = route_qualifier.qualifier_1
-LEFT OUTER JOIN
-    "route_qualifiers" AS route_qualifier2
-         on
-       procedure.SectionCode = route_qualifier2.Section
-        and
-       procedure.SubSectionCode = route_qualifier2.SubSection
-        and
-         procedure.ApchRouteQualifier2 = route_qualifier2.qualifier_2    
-group by
-    Qualifiers
-order by
-    Qualifiers
-    --, CountOfSteps ASC
-;
+-- --------------------------------------------------------------------------------
+-- -- The set of distinct route types and qualifiers
+-- --  and their more verbose descriptions
+-- SELECT DISTINCT
+--     procedure.RouteType
+--     ||  CASE
+--             WHEN procedure.ApchRouteQualifier1 = '' THEN '_'
+--             ELSE procedure.ApchRouteQualifier1
+--         END
+--     ||  CASE
+--             WHEN procedure.ApchRouteQualifier2 = '' THEN '_'
+--             ELSE procedure.ApchRouteQualifier2
+--         END
+--         AS Qualifiers
+--     , route_type.Route_Type_Description
+--     , route_qualifier.Qualifier_1_Description
+--     , route_qualifier2.Qualifier_2_Description
+--     , count(*) as CountOfSteps
+-- FROM
+--     "primary_P_F_base_Airport - Approach Procedures" AS procedure
+-- LEFT OUTER JOIN
+--     "route_types" AS route_type
+--         on
+--         procedure.SectionCode = route_type.Section
+--             and
+--         procedure.SubSectionCode = route_type.SubSection
+--          and
+--         procedure.RouteType = route_type.type_code
+--     
+-- LEFT OUTER JOIN
+--     "route_qualifiers" AS route_qualifier
+--          on
+--        procedure.SectionCode = route_qualifier.Section
+--         and
+--        procedure.SubSectionCode = route_qualifier.SubSection
+--         and
+--        procedure.ApchRouteQualifier1 = route_qualifier.qualifier_1
+-- LEFT OUTER JOIN
+--     "route_qualifiers" AS route_qualifier2
+--          on
+--        procedure.SectionCode = route_qualifier2.Section
+--         and
+--        procedure.SubSectionCode = route_qualifier2.SubSection
+--         and
+--          procedure.ApchRouteQualifier2 = route_qualifier2.qualifier_2    
+-- group by
+--     Qualifiers
+-- order by
+--     Qualifiers
+--     --, CountOfSteps ASC
+-- ;
 --------------------------------------------------------------------------------

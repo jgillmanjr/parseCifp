@@ -83,7 +83,7 @@ my %hash_of_parsers = do 'parsers.pl';
 my %hash_of_continuation_base_parsers = do 'continuation_base_parsers.pl';
 
 # Load the hash definition from an external file
-# Use these continuation parsers for SectionCode/SubsectionCodes 
+# Use these continuation parsers for SectionCode/SubsectionCodes
 # that have application types
 my %hash_of_continuation_application_parsers =
   do 'continuation_application_parsers.pl';
@@ -91,7 +91,7 @@ my %hash_of_continuation_application_parsers =
 # A hash to record SectionCode/SubsectionCode/ApplicationType that we've encountered
 my %continuationAndApplicationTypes = ();
 
-# A parser for the common information for a record to determine which more 
+# A parser for the common information for a record to determine which more
 # specific parser to use
 my $parser_base = Parse::FixedLength->new(
     [
