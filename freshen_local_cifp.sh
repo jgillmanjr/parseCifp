@@ -2,61 +2,42 @@
 set -eu                 # Always put this in Bourne shell scripts
 IFS=$(printf '\n\t')    # Always put this in Bourne shell scripts
 
-# Download latest cifp from faa/aeronav
+# Download latest documents from from FAA
 
 # The script begins here
-# Set some basic variables
-declare -r PROGNAME=$(basename "$0")
-declare -r PROGDIR=$(readlink -m "$(dirname "$0")")
-
-# Get the number of remaining command line arguments
+# Set some basic variables and make them read-only
+PROGNAME=$(basename "$0")
+PROGDIR=$(readlink -m "$(dirname "$0")")
 NUMARGS=$#
+
+declare -r PROGNAME
+declare -r PROGDIR
+declare -r NUMARGS
 
 # Validate number of command line parameters
 if [ "$NUMARGS" -ne 1 ] ; then
     echo "Usage: $PROGNAME <DOWNLOAD_ROOT_DIR>" >&2
+    echo "eg: $PROGNAME ." >&2
     exit 1
 fi
 
-# Get command line parameters
-DOWNLOAD_ROOT_DIR="$1"
+# Get command line parameter
+DOWNLOAD_ROOT_DIR=$(readlink -f "$1")
+declare -r DOWNLOAD_ROOT
 
-# Check that our destination exists
 if [ ! -d "$DOWNLOAD_ROOT_DIR" ]; then
     echo "$DOWNLOAD_ROOT_DIR doesn't exist" >&2
     exit 1
 fi
 
-# Name of file used as last refresh marker
-REFRESH_MARKER="${PROGDIR}/last_faa_refresh"
+# get URL for current CIFP edition
+cifp_url=$(./get_current_cifp_url.py)
 
-# Exit if we ran this command within the last 24 hours (adjust as you see fit)
-if [ -e "${REFRESH_MARKER}" ] && \
-   [ "$(date +%s -r "${REFRESH_MARKER}")" -gt "$(date +%s --date="24 hours ago")" ]
-    then
-    echo "CIFP updated within last 24 hours, exiting"  >&2
-    exit 1
-fi 
-
-# Update the time of this file so we can check when we ran this last
-touch "${REFRESH_MARKER}"
-
-# Get all of the latest charts
-set +e
+# Update local cifp
+echo "Downloading $cifp_url"
     wget \
-        --directory-prefix="$DOWNLOAD_ROOT_DIR" \
-        --recursive                             \
-        -l1                                     \
-        --span-hosts                            \
-        --domains=aeronav.faa.gov,www.faa.gov   \
-        --timestamping                          \
-        --no-parent                             \
-        -A.zip                                  \
-        -erobots=off                            \
-        http://www.faa.gov/air_traffic/flight_info/aeronav/digital_products/cifp/download/
+        --directory-prefix="$DOWNLOAD_ROOT_DIR"    \
+        --timestamping      \
+        --ignore-case       \
+        "$cifp_url"
 
-    echo "wget return code was $?"
-set -e
-
-
-    
