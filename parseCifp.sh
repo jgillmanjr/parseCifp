@@ -4,29 +4,43 @@ IFS=$(printf '\n\t')  # Always put this in Bourne shell scripts
 
 #Check count of command line parameters
 if [ "$#" -ne 1 ] ; then
-  echo "Usage: $0 cycle" >&2
+  echo "Usage: $0 <path to local cifp file>" >&2
+  echo "eg. $0 ./www.aeronav.faa.gov/Upload_313-d/cifp/cifp_201704.zip"    >&2
+  echo "please run ./freshen_local_cifp.sh to update local CIFP data files first" >&2
   exit 1
 fi
 
-#Get command line parameters
-cycle="$1"
+sourceZip="$1"
 
-#Where the CIFP data is unzipped to
+if [ ! -f "$sourceZip" ]; then
+    echo "$sourceZip doesn't exist" >&2
+    echo "please run ./freshen_local_cifp.sh to update local CIFP data files"   >&2
+    exit 1
+fi
+
+# Process the supplied file name to get cycle number
+# Save everything after 'cifp_20'
+tmp=${sourceZip#*cifp_20}
+
+# Remove the extension, leaving the cycle number
+cycle=${tmp%.*}
+
+# Where the CIFP data is unzipped to
 datadir=./CIFP_20$cycle/
 
-#Where to save files we create
+# Where to save files we create
 outputdir=.
 
-#delete any existing files
-set +e
-rm $outputdir/cifp-$cycle.db
-set -e
+echo "Unzipping CIFP $cycle files"
+unzip -u -j -q "$sourceZip"  -d "$datadir" > "$cycle-unzip.txt"
+
+# Delete any existing files
+rm -f $outputdir/cifp-"$cycle".db
 
 echo "Creating the database"
-#create the new sqlite database
-#Create geometry and expand text
-./parseCifp.pl -c$cycle $datadir
+# Create the sqlite database
+./parseCifp.pl -c"$cycle" "$datadir"
 
-#add indexes
+# Add indexes
 echo "Adding indexes"
-sqlite3 $outputdir/cifp-$cycle.db < addIndexes.sql
+sqlite3 $outputdir/cifp-"$cycle".db < addIndexes.sql
